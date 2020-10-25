@@ -1,0 +1,40 @@
+import numpy as np
+import pandas as pd
+import quantopian.optimize as opt
+import quantopian.algorithm as algo
+ 
+def initialize(context):
+    context.s1 = sid(5061)
+ 
+    schedule_function(check_bands,date_rules.every_day())
+        
+def bollinger_bands(context, data):
+    
+    cur_price = data.current(context.s1,'price')
+    
+    # Load historical data for the stocks
+    prices = data.history(context.s1,'price', 14 , '1d')
+    avg = prices.mean()
+    std = prices.std()
+    lower_band = avg - 1.5 * std
+    upper_band = avg + 1.5 * std
+    
+    if cur_price <= lower_band:
+        order_target_percent(context.s1, 1.0)
+        print("Buyin")
+        print("Current price is: " + str(cur_price))
+        print("Lower band is: " + str(lower_band))
+        
+       
+    elif cur_price >= upper_band:
+        order_target_percent(context.s1, -1.0)
+        print("Shorting")
+        print("Current price is: " + str(cur_price))
+        print("Upper band is: " + str(upper_band))
+    else:
+        pass
+        
+    record(upper=upper_band,
+           lower=lower_band,
+           mvag_14=avg,
+           price=cur_price)
